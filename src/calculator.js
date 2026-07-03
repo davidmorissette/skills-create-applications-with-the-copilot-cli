@@ -18,6 +18,8 @@
  The CLI exits with code 0 on success, and non-zero on error.
 */
 
+const { add, sub, mul, div, parseNumber } = require('./calculator-lib');
+
 function printHelp() {
   console.log(`Calculator CLI
 
@@ -37,12 +39,6 @@ Examples:
   node src/calculator.js add 2 3
   node src/calculator.js div 10 2
 `);
-}
-
-function parseNumber(str) {
-  const n = Number(str);
-  if (!Number.isFinite(n)) return null;
-  return n;
 }
 
 function error(msg) {
@@ -73,27 +69,29 @@ async function main() {
   }
 
   let result;
-  switch (cmd) {
-    case 'add':
-      result = a + b;
-      break;
-    case 'sub':
-      result = a - b;
-      break;
-    case 'mul':
-      result = a * b;
-      break;
-    case 'div':
-      if (b === 0) {
-        error('Division by zero');
+  try {
+    switch (cmd) {
+      case 'add':
+        result = add(a, b);
+        break;
+      case 'sub':
+        result = sub(a, b);
+        break;
+      case 'mul':
+        result = mul(a, b);
+        break;
+      case 'div':
+        result = div(a, b);
+        break;
+      default:
+        error(`Unknown command: ${cmd}`);
+        printHelp();
         process.exit(1);
-      }
-      result = a / b;
-      break;
-    default:
-      error(`Unknown command: ${cmd}`);
-      printHelp();
-      process.exit(1);
+    }
+  } catch (err) {
+    // e.g. division by zero
+    error(err.message || 'Operation error');
+    process.exit(1);
   }
 
   // Print result to stdout (no extra formatting)
