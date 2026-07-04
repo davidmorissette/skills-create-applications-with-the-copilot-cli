@@ -3,34 +3,43 @@
 /*
  Node.js CLI Calculator
 
- Supported operations (basic arithmetic shown in the provided image):
+ Supported operations:
  - add    (addition)       : a + b
  - sub    (subtraction)    : a - b
  - mul    (multiplication) : a * b
  - div    (division)       : a / b (division by zero is handled as an error)
+ - mod    (modulo)         : a % b (remainder of a divided by b)
+ - pow    (exponentiation) : base ^ exponent
+ - sqrt   (square root)    : √n (with error handling for negative numbers)
 
  Usage examples:
    node src/calculator.js add 2 3     # prints 5
    node src/calculator.js sub 10 4    # prints 6
    node src/calculator.js mul 3 7     # prints 21
    node src/calculator.js div 8 2     # prints 4
+   node src/calculator.js mod 10 3    # prints 1
+   node src/calculator.js pow 2 3     # prints 8
+   node src/calculator.js sqrt 16     # prints 4
 
  The CLI exits with code 0 on success, and non-zero on error.
 */
 
-const { add, sub, mul, div, parseNumber } = require('./calculator-lib');
+const { add, sub, mul, div, modulo, power, squareRoot, parseNumber } = require('./calculator-lib');
 
 function printHelp() {
   console.log(`Calculator CLI
 
 Usage:
-  calculator <command> <a> <b>
+  calculator <command> <a> [b]
 
 Commands:
   add    Add a and b
   sub    Subtract b from a
   mul    Multiply a by b
   div    Divide a by b (errors on divide-by-zero)
+  mod    Modulo: remainder of a divided by b
+  pow    Power: raise a to the power of b
+  sqrt   Square root of a (only requires one operand)
 
 Options:
   -h, --help Show this help message
@@ -38,6 +47,9 @@ Options:
 Examples:
   node src/calculator.js add 2 3
   node src/calculator.js div 10 2
+  node src/calculator.js mod 10 3
+  node src/calculator.js pow 2 3
+  node src/calculator.js sqrt 16
 `);
 }
 
@@ -55,8 +67,31 @@ async function main() {
 
   const [cmd, aStr, bStr] = argv;
 
-  if (!cmd || aStr === undefined || bStr === undefined) {
+  if (!cmd || aStr === undefined) {
     error('Missing arguments. Run with --help for usage.');
+    process.exit(1);
+  }
+
+  // sqrt only requires one operand
+  if (cmd === 'sqrt') {
+    const a = parseNumber(aStr);
+    if (a === null) {
+      error('Operand must be a valid number.');
+      process.exit(1);
+    }
+    try {
+      const result = squareRoot(a);
+      console.log(result);
+    } catch (err) {
+      error(err.message || 'Operation error');
+      process.exit(1);
+    }
+    return;
+  }
+
+  // All other operations require two operands
+  if (bStr === undefined) {
+    error('Missing second operand. Run with --help for usage.');
     process.exit(1);
   }
 
@@ -83,18 +118,22 @@ async function main() {
       case 'div':
         result = div(a, b);
         break;
+      case 'mod':
+        result = modulo(a, b);
+        break;
+      case 'pow':
+        result = power(a, b);
+        break;
       default:
         error(`Unknown command: ${cmd}`);
         printHelp();
         process.exit(1);
     }
   } catch (err) {
-    // e.g. division by zero
     error(err.message || 'Operation error');
     process.exit(1);
   }
 
-  // Print result to stdout (no extra formatting)
   console.log(result);
 }
 
