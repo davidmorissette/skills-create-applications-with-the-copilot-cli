@@ -1,0 +1,12 @@
+{
+  "name": "calculator-app",
+  "version": "1.0.0",
+  "description": "A Node.js CLI calculator app",
+  "main": "src/calculator.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
+}
